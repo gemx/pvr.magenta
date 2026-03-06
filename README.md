@@ -39,14 +39,16 @@ Versions from 21.9.0 also support Magenta TV 2.0. For Magenta TV 2.0 you have to
 
 ### Linux
 
-1. `git clone --branch master https://github.com/xbmc/xbmc.git`
-2. `mkdir -p kodi/cmake/addons/addons/pvr.magenta/`
-3. `echo "pvr.magenta https://github.com/gemx/pvr.magenta Omega" > kodi/cmake/addons/addons/pvr.magenta/pvr.magenta.txt`
-4. `echo "all" > kodi/cmake/addons/addons/pvr.magenta/platforms.txt`
-5. `git clone https://github.com/gemx/pvr.magenta.git`
-6. `cd pvr.magenta && mkdir build && cd build`
-7. `cmake -DADDONS_TO_BUILD=pvr.magenta -DADDON_SRC_PREFIX=../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../../kodi/addons -DPACKAGE_ZIP=1 ../../kodi/cmake/addons`
-8. `make`
+1. `git clone --branch master https://github.com/xbmc/xbmc.git kodi`
+   compile kodi -- if you want to build for android follow the official cross compile guide here https://github.com/xbmc/xbmc/blob/master/docs/README.Android.md
+   ATTENTION: If you want to crosscompile for Omega be sure to choose an old version of the NDK - 21.4.7075529 worked fine for Omega
+3. `mkdir -p kodi/cmake/addons/addons/pvr.magenta/`
+4. `echo "pvr.magenta https://github.com/gemx/pvr.magenta Omega" > kodi/cmake/addons/addons/pvr.magenta/pvr.magenta.txt`
+5. `echo "all" > kodi/cmake/addons/addons/pvr.magenta/platforms.txt`
+6. `git clone https://github.com/gemx/pvr.magenta.git`
+7. `cd pvr.magenta && mkdir build && cd build`
+8. `cmake -DADDONS_TO_BUILD=pvr.magenta -DADDON_SRC_PREFIX=../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../../kodi/addons -DPACKAGE_ZIP=1 ../../kodi/cmake/addons`
+9. `make`
 
 ## Notes
 
