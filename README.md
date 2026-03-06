@@ -1,6 +1,16 @@
 [![License: GPL-2.0-or-later](https://img.shields.io/badge/License-GPL%20v2+-blue.svg)](LICENSE.md)
 [![Build and run tests](https://github.com/nirvana-7777/pvr.magenta/actions/workflows/build.yml/badge.svg?branch=Omega)](https://github.com/nirvana-7777/pvr.magenta/actions/workflows/build.yml)
 
+# Fork
+This is a fork of  https://github.com/nirvana-7777/pvr.magenta, since it seems discontinued
+I try to continue the excellent work of nirvana-7777 and implementing missing features, like deleting and creation of recordings
+
+## Roadmap
+* Compatibility for Piers
+* Fix problems with getting a token at first start (best method actually is enable V1 API, authenticate with the token, restart kodi, switch to v2 API, restart kodi, authenticate)
+* Delete Recording
+* Create recordings
+
 # Magenta PVR client for Kodi
 This is a Magenta PVR client addon for Kodi. It provides Kodi integration for the streaming provider [Magenta TV](https://www.telekom.de/magenta-tv). A user account / paid subscription is required to use this addon. The content is geo-blocked and DRM protected. Therefore it requires inputstream adaptive in combination with widevine.
 Versions from 21.9.0 also support Magenta TV 2.0. For Magenta TV 2.0 you have to provide your username and password. After entering your credentials you have to restart Kodi.
@@ -30,12 +40,12 @@ Versions from 21.9.0 also support Magenta TV 2.0. For Magenta TV 2.0 you have to
 ### Linux
 
 1. `git clone --branch master https://github.com/xbmc/xbmc.git`
-2. `mkdir -p xbmc/cmake/addons/addons/pvr.magenta/`
-3. `echo "pvr.magenta https://github.com/nirvana-7777/pvr.magenta Omega" > xbmc/cmake/addons/addons/pvr.magenta/pvr.magenta.txt`
-4. `echo "all" > xbmc/cmake/addons/addons/pvr.magenta/platforms.txt`
-5. `git clone https://github.com/nirvana-7777/pvr.magenta.git`
+2. `mkdir -p kodi/cmake/addons/addons/pvr.magenta/`
+3. `echo "pvr.magenta https://github.com/gemx/pvr.magenta Omega" > kodi/cmake/addons/addons/pvr.magenta/pvr.magenta.txt`
+4. `echo "all" > kodi/cmake/addons/addons/pvr.magenta/platforms.txt`
+5. `git clone https://github.com/gemx/pvr.magenta.git`
 6. `cd pvr.magenta && mkdir build && cd build`
-7. `cmake -DADDONS_TO_BUILD=pvr.magenta -DADDON_SRC_PREFIX=../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../../xbmc/addons -DPACKAGE_ZIP=1 ../../xbmc/cmake/addons`
+7. `cmake -DADDONS_TO_BUILD=pvr.magenta -DADDON_SRC_PREFIX=../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../../kodi/addons -DPACKAGE_ZIP=1 ../../kodi/cmake/addons`
 8. `make`
 
 ## Notes
