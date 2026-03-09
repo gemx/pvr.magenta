@@ -135,6 +135,44 @@ bool CPVRMagenta2::GetMyGenres()
   return true;
 }
 
+bool CPVRMagenta2::SendDeleteRequest(const std::string& url)
+{
+  int statusCode = 0;
+  std::string result;
+
+  result = m_httpClient->HttpDelete(url, statusCode);
+
+  if ((statusCode >=200 || statusCode <300))
+  {
+    return true;
+  }
+  else if (statusCode==401)
+  {
+      kodi::Log(ADDON_LOG_DEBUG, "We need to reauthenticate!");
+      if (m_authClient->ReLogin()) 
+      {
+        kodi::Log(ADDON_LOG_DEBUG, "Reauth successful");
+        result = m_httpClient->HttpDelete(url, statusCode);
+        if ((statusCode >=200 || statusCode <300))
+        {
+          return true;
+        }
+      }
+      else
+      {
+        kodi::Log(ADDON_LOG_DEBUG, "Reauth failed");
+        kodi::gui::dialogs::OK::ShowAndGetInput("Reauth failed", "Reauth failed");
+        return false;
+      }
+  }
+
+  kodi::Log(ADDON_LOG_DEBUG, "Delete request for %s returned status code: %i",
+                                      url.c_str(),
+                                      statusCode);
+  return false;
+}
+
+
 bool CPVRMagenta2::GetPostJson(const std::string& url, const std::string& body, rapidjson::Document& doc)
 {
   int statusCode = 0;
@@ -558,6 +596,13 @@ void CPVRMagenta2::AddGroupChannel(const std::string& id, const int& channelUid)
   }
 }
 
+std::string valueToString(const rapidjson::Value& val) {
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    val.Accept(writer); // Serialize the value into the buffer
+    return buffer.GetString();
+}
+
 void CPVRMagenta2::AddChannelEntry(const rapidjson::Value& entry)
 {
   Magenta2Channel channel;
@@ -565,7 +610,6 @@ void CPVRMagenta2::AddChannelEntry(const rapidjson::Value& entry)
   channel.title = Utils::JsonStringOrEmpty(entry, "title");
   channel.id = Utils::JsonStringOrEmpty(entry, "id");
   channel.iChannelNumber = Utils::JsonIntOrZero(entry, "dt$displayChannelNumber");
-//      channel.isEntitled = false;
   if (m_settings->HideUnsubscribed())
     channel.isHidden = true;
   else
@@ -599,6 +643,7 @@ void CPVRMagenta2::AddChannelEntry(const rapidjson::Value& entry)
         }
       }
     }
+
     if (stationItem.HasMember("dt$categoryIds"))
     {
       const rapidjson::Value& categoryIds = stationItem["dt$categoryIds"];
@@ -691,6 +736,10 @@ void CPVRMagenta2::SetChannelNumber(const std::string& id, const int& number)
     if (thisChannel.stationsId == id)
     {
       thisChannel.iChannelNumber = number;
+      if (number==0) // 0 means hidden by channel manager of magenta tv
+      {
+        thisChannel.isHidden=true;
+      }
       kodi::Log(ADDON_LOG_DEBUG, "Setting new personal channel number %i for channel: %s", number, thisChannel.strChannelName.c_str());
     }
   }
@@ -841,7 +890,7 @@ PVR_ERROR CPVRMagenta2::GetCapabilities(kodi::addon::PVRCapabilities& capabiliti
   capabilities.SetSupportsRadio(false);
   capabilities.SetSupportsChannelGroups(m_settings->IsGroupsenabled());
   capabilities.SetSupportsRecordings(true);
-  capabilities.SetSupportsRecordingsDelete(false);
+  capabilities.SetSupportsRecordingsDelete(true);
   capabilities.SetSupportsRecordingsUndelete(false);
   capabilities.SetSupportsRecordingsRename(false);
   capabilities.SetSupportsRecordingsLifetimeChange(false);
@@ -853,7 +902,7 @@ PVR_ERROR CPVRMagenta2::GetCapabilities(kodi::addon::PVRCapabilities& capabiliti
 //  std::vector<kodi::addon::PVRTypeIntValue> lifetimeValues;
 //  GetLifetimeValues(lifetimeValues, true);
 //  capabilities.SetRecordingsLifetimeValues(lifetimeValues);
-//  capabilities.SetSupportsAsyncEPGTransfer(true);
+  //capabilities.SetSupportsAsyncEPGTransfer(true);
 //  capabilities.SetHandlesInputStream(true);
 
   return PVR_ERROR_NO_ERROR;
@@ -1468,9 +1517,8 @@ PVR_ERROR CPVRMagenta2::GetEPGForChannel(int channelUid,
                                          kodi::addon::PVREPGTagsResultSet& results)
 {
   kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
-
+ 
   kodi::Log(ADDON_LOG_DEBUG, "Start %u End %u", start, end);
-//  kodi::Log(ADDON_LOG_DEBUG, "EPG Request for channel %i from %s to %s", channelUid, startTime.c_str(), endTime.c_str());
 
   std::string baseUrl = m_allChannelSchedulesFeed + "?form=cjson&byLocationId=" + Utils::UrlEncode(m_locationIdUri) +
                                                     "&byListingTime=" + Utils::UrlEncode(Utils::TimeToString2(start) + "~" + Utils::TimeToString2(end)) +
@@ -1484,6 +1532,9 @@ PVR_ERROR CPVRMagenta2::GetEPGForChannel(int channelUid,
 PVR_ERROR CPVRMagenta2::IsEPGTagPlayable(const kodi::addon::PVREPGTag& tag, bool& bIsPlayable)
 {
   kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
+  //kwasi: this takes long
+  bIsPlayable = true;
+  return PVR_ERROR_NO_ERROR;
   bIsPlayable = false;
 
   std::stringstream ss;
@@ -1718,7 +1769,9 @@ void CPVRMagenta2::FillPVRRecording(const rapidjson::Value& recordingItem, kodi:
   {
     const rapidjson::Value& program = recordingItem["program"];
     const rapidjson::Value& listing = recordingItem["listing"];
-    kodiRecording.SetRecordingId(Utils::JsonStringOrEmpty(recordingItem, "id"));
+    //kodiRecording.SetRecordingId(Utils::JsonStringOrEmpty(recordingItem, "id"));
+    // we need the listing guid because that is needed for deletion of a recording
+    kodiRecording.SetRecordingId(Utils::JsonStringOrEmpty(listing, "guid"));
     kodiRecording.SetTitle(Utils::JsonStringOrEmpty(program, "title"));
     kodiRecording.SetYear(Utils::JsonIntOrZero(program, "year"));
     kodiRecording.SetPlot(Utils::JsonStringOrEmpty(program, "description"));
@@ -1817,6 +1870,22 @@ PVR_ERROR CPVRMagenta2::GetRecordings(bool deleted, kodi::addon::PVRRecordingsRe
   return PVR_ERROR_NO_ERROR;
 }
 
+PVR_ERROR CPVRMagenta2::DeleteRecording(const kodi::addon::PVRRecording& recording)
+{
+    kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
+    std::string url = m_pvrBaseUrl + "/delete-recording-for-listing/"+recording.GetRecordingId();
+    if (SendDeleteRequest(url)) 
+    {
+      kodi::QueueNotification(QUEUE_INFO, "Aufnahme", "Aufnahme gelöscht");
+      //kodi::addon::CInstancePVRClient::TriggerRecordingUpdate();
+      return PVR_ERROR_NO_ERROR;
+    }
+    else
+    {
+      return PVR_ERROR_FAILED;
+    }
+}
+
 PVR_ERROR CPVRMagenta2::GetRecordingStreamProperties(
     const kodi::addon::PVRRecording& recording,
     std::vector<kodi::addon::PVRStreamProperty>& properties)
@@ -1837,7 +1906,10 @@ PVR_ERROR CPVRMagenta2::GetRecordingStreamProperties(
 
   for (rapidjson::SizeType i = 0; i < recordings.Size(); i++)
   {
-    if (recording.GetRecordingId() != Utils::JsonStringOrEmpty(recordings[i], "id"))
+    const rapidjson::Value& listing = recordings[i]["listing"];
+    //kodiRecording.SetRecordingId(Utils::JsonStringOrEmpty(recordingItem, "id"));
+    // we need the listing guid because that is needed for deletion of a recording
+    if (recording.GetRecordingId() != Utils::JsonStringOrEmpty(listing, "guid"))
       continue;
 
     std::string playUrl = Utils::JsonStringOrEmpty(recordings[i], "playbackUrl");

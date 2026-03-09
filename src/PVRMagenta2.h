@@ -164,6 +164,7 @@ public:
   //Recordings
   PVR_ERROR GetRecordingsAmount(bool deleted, int& amount);
   PVR_ERROR GetRecordings(bool deleted, kodi::addon::PVRRecordingsResultSet& results);
+  PVR_ERROR DeleteRecording(const kodi::addon::PVRRecording& recording);
   PVR_ERROR GetRecordingStreamProperties(
       const kodi::addon::PVRRecording& recording,
       std::vector<kodi::addon::PVRStreamProperty>& properties);
@@ -193,6 +194,7 @@ private:
 
   bool GetMyGenres();
   bool GetUserList(const std::string& context);
+  bool SendDeleteRequest(const std::string& url);
   bool GetPostJson(const std::string& url, const std::string& body, rapidjson::Document& doc);
   bool GetSmil(const std::string& url, tinyxml2::XMLDocument& smilDoc);
   bool GetStreamParameters(const std::string& url, std::string& src, std::string& releasePid);

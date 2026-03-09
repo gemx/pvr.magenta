@@ -2185,7 +2185,20 @@ PVR_ERROR CPVRMagenta::DeletePVR(const std::string pvrId, const bool isRecording
 PVR_ERROR CPVRMagenta::DeleteRecording(const kodi::addon::PVRRecording& recording)
 {
   kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
-  return DeletePVR(recording.GetRecordingId(), true);
+  if (m_isMagenta2)
+  {
+    PVR_ERROR retCode=m_magenta2->DeleteRecording(recording);
+    if (retCode==PVR_ERROR_NO_ERROR)
+    {
+      kodi::addon::CInstancePVRClient::TriggerRecordingUpdate();
+    }
+    return retCode;
+  }
+  else
+  {
+    return DeletePVR(recording.GetRecordingId(), true);
+  }
+  
 }
 
 namespace
