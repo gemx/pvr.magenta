@@ -13,6 +13,9 @@
 #include <kodi/Filesystem.h>
 #include <kodi/General.h>
 
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+
 std::string Utils::GetFilePath(const std::string &strPath, bool bUserPath)
 {
   return bUserPath ? kodi::addon::GetUserPath(strPath) : kodi::addon::GetAddonPath(strPath);
@@ -280,4 +283,25 @@ std::string Utils::CreateUUID()
     }
   }
   return uuid;
+}
+
+std::string Utils::IntToHexString(int value)
+{
+    char buf[32]; // genug für 16 Hex-Zeichen + 0
+    std::snprintf(buf, sizeof(buf), "%llx", (unsigned long long)value);
+
+    size_t len = std::strlen(buf);
+
+    if (len % 2 == 0) {
+        return std::string(buf);
+    }
+    return std::string("0") + buf;
+}
+
+std::string Utils::SerializeJsonValue(const rapidjson::Value& val) 
+{
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    val.Accept(writer); // Serialize the value into the buffer
+    return buffer.GetString();
 }

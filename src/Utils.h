@@ -28,5 +28,7 @@ public:
   static int64_t JsonInt64OrZero(const rapidjson::Value& jsonValue, const char* fieldName);
   static double JsonDoubleOrZero(const rapidjson::Value& jsonValue, const char* fieldName);
   static bool JsonBoolOrFalse(const rapidjson::Value& jsonValue, const char* fieldName);
+  static std::string IntToHexString(int value);
   static std::string CreateUUID();
+  static std::string SerializeJsonValue(const rapidjson::Value& val);
 };

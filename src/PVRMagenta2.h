@@ -161,6 +161,9 @@ public:
   PVR_ERROR GetTimerTypes(std::vector<kodi::addon::PVRTimerType>& types);
   PVR_ERROR GetTimersAmount(int& amount);
   PVR_ERROR GetTimers(kodi::addon::PVRTimersResultSet& results);
+  PVR_ERROR AddTimer(const kodi::addon::PVRTimer& timer);
+  PVR_ERROR UpdateTimer(const kodi::addon::PVRTimer& timer);
+  PVR_ERROR DeleteTimer(const kodi::addon::PVRTimer& timer, bool forceDelete);
   //Recordings
   PVR_ERROR GetRecordingsAmount(bool deleted, int& amount);
   PVR_ERROR GetRecordings(bool deleted, kodi::addon::PVRRecordingsResultSet& results);
@@ -215,13 +218,13 @@ private:
   bool GetGenre(int& primaryType, int& secondaryType, const std::string& primaryGenre, const std::string& secondaryGenre);
   void AddEPGEntry(const int& channelNumber, const rapidjson::Value& entry, kodi::addon::PVREPGTagsResultSet& results);
   bool GetEPGFeed(const int& channelNumber, const std::string& baseUrl, kodi::addon::PVREPGTagsResultSet& results);
-  bool GetChannelByNumber(const unsigned int number, Magenta2Channel& myChannel);
   bool GetChannelNamebyId(const std::string& id, std::string& name);
   bool AddDistributionRight(const unsigned int number, const std::string& right);
 //  bool IsChannelNumberExist(const unsigned int number);
   bool HideDuplicateChannels();
 //  bool SingleSignOn();
   bool ReleaseLock();
+  void FillPVRTimer(const rapidjson::Value& recordingItem, kodi::addon::PVRTimer& kodiTimer);
   int CountTimersRecordings(const bool& isRecording);
   void FillPVRRecording(const rapidjson::Value& recordingItem, kodi::addon::PVRRecording& kodiRecording);
   void SetGenreTypes(const rapidjson::Value& item, std::string& primary, std::string& secondary);

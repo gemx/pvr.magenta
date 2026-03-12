@@ -2308,6 +2308,11 @@ void CPVRMagenta::GetLifetimeValues(std::vector<kodi::addon::PVRTypeIntValue>& l
 
 PVR_ERROR CPVRMagenta::GetTimerTypes(std::vector<kodi::addon::PVRTimerType>& types)
 {
+  if (m_magenta2)
+  {
+    return m_magenta2->GetTimerTypes(types);
+  }
+
   kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
 
   /* PVR_Timer.iLifetime values and presentation.*/
@@ -2366,6 +2371,10 @@ PVR_ERROR CPVRMagenta::GetTimerTypes(std::vector<kodi::addon::PVRTimerType>& typ
 
 PVR_ERROR CPVRMagenta::GetTimersAmount(int& amount)
 {
+  if (m_magenta2)
+  {
+    return m_magenta2->GetTimersAmount(amount);
+  }
   kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
   amount = static_cast<int>(m_timers.size());
   amount += GetGroupTimersAmount();
@@ -2376,6 +2385,11 @@ PVR_ERROR CPVRMagenta::GetTimersAmount(int& amount)
 
 PVR_ERROR CPVRMagenta::GetTimers(kodi::addon::PVRTimersResultSet& results)
 {
+  if (m_magenta2)
+  {
+    return m_magenta2->GetTimers(results);
+  }
+
   kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
   if (!GetTimersRecordings(false)) {
     kodi::Log(ADDON_LOG_ERROR, "Failed to get timers from backend");
@@ -2497,6 +2511,22 @@ std::string CPVRMagenta::GetPeriodPVRPayload(const MagentaChannel& channel, cons
 
 PVR_ERROR CPVRMagenta::AddTimer(const kodi::addon::PVRTimer& timer)
 {
+  if (m_isMagenta2)
+  {
+    PVR_ERROR magenta2RetCode=m_magenta2->AddTimer(timer);
+    if (magenta2RetCode==PVR_ERROR_NO_ERROR)
+    {
+        kodi::Log(ADDON_LOG_DEBUG, "Added single timer");
+        kodi::QueueNotification(QUEUE_INFO, "Aufnahme", "Einzelaufnahme programmiert");
+        kodi::addon::CInstancePVRClient::TriggerTimerUpdate();
+        auto current_time = time(NULL);
+        if (current_time > timer.GetStartTime()) {
+          kodi::addon::CInstancePVRClient::TriggerRecordingUpdate();
+        }
+    }
+    return magenta2RetCode;
+  }
+
   kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
 
   std::string url;
@@ -2555,6 +2585,11 @@ PVR_ERROR CPVRMagenta::AddTimer(const kodi::addon::PVRTimer& timer)
 
 PVR_ERROR CPVRMagenta::UpdateTimer(const kodi::addon::PVRTimer& timer)
 {
+  if (m_isMagenta2)
+  {
+    return m_magenta2->UpdateTimer(timer);
+  }
+
   kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
 
   std::string url;
@@ -2614,8 +2649,19 @@ PVR_ERROR CPVRMagenta::UpdateTimer(const kodi::addon::PVRTimer& timer)
   return PVR_ERROR_NO_ERROR;
 }
 
-PVR_ERROR CPVRMagenta::DeleteTimer(const kodi::addon::PVRTimer& timer, bool)
+PVR_ERROR CPVRMagenta::DeleteTimer(const kodi::addon::PVRTimer& timer, bool forceDelete)
 {
+  if (m_magenta2)
+  {
+    PVR_ERROR retCode=m_magenta2->DeleteTimer(timer,forceDelete);
+    if (retCode==PVR_ERROR_NO_ERROR)
+    {
+      kodi::Log(ADDON_LOG_DEBUG, "Trigger timer update()");
+      kodi::addon::CInstancePVRClient::TriggerTimerUpdate();
+    }
+    return retCode;
+  }
+
   kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
   if (timer.GetTimerType() == TIMER_ONCE_EPG)
   {
