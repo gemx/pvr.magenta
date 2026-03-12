@@ -1,5 +1,5 @@
 name: Build and run tests
-on: [push, pull_request]
+on: [push, pull_request,workflow_dispatch]
 env:
   app_id: pvr.magenta
 
