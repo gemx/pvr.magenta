@@ -183,6 +183,7 @@ private:
   std::vector<Magenta2KV> m_parameters;
   std::vector<Magenta2Genre> m_genres;
   std::vector<Magenta2Category> m_categories;
+  std::vector<kodi::addon::PVRTimer> m_seriesTimers;
 //  std::vector<Magenta2Recording> m_recordings;
 //  std::vector<Magenta2Recording> m_timers;
 
@@ -220,11 +221,13 @@ private:
   bool GetEPGFeed(const int& channelNumber, const std::string& baseUrl, kodi::addon::PVREPGTagsResultSet& results);
   bool GetChannelNamebyId(const std::string& id, std::string& name);
   bool AddDistributionRight(const unsigned int number, const std::string& right);
-//  bool IsChannelNumberExist(const unsigned int number);
   bool HideDuplicateChannels();
 //  bool SingleSignOn();
   bool ReleaseLock();
-  void FillPVRTimer(const rapidjson::Value& recordingItem, kodi::addon::PVRTimer& kodiTimer);
+  std::string GetSeriesGuidFromSeriesIdUrl(std::string url);
+  int GetSeriesTimerIdBySeriesId(std::string seriesId);
+  PVR_ERROR AddOncePVRTimer(kodi::addon::PVRTimersResultSet& results);
+  PVR_ERROR AddSeriesPVRTimer(kodi::addon::PVRTimersResultSet& results);
   int CountTimersRecordings(const bool& isRecording);
   void FillPVRRecording(const rapidjson::Value& recordingItem, kodi::addon::PVRRecording& kodiRecording);
   void SetGenreTypes(const rapidjson::Value& item, std::string& primary, std::string& secondary);

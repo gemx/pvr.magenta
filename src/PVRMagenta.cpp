@@ -2516,8 +2516,6 @@ PVR_ERROR CPVRMagenta::AddTimer(const kodi::addon::PVRTimer& timer)
     PVR_ERROR magenta2RetCode=m_magenta2->AddTimer(timer);
     if (magenta2RetCode==PVR_ERROR_NO_ERROR)
     {
-        kodi::Log(ADDON_LOG_DEBUG, "Added single timer");
-        kodi::QueueNotification(QUEUE_INFO, "Aufnahme", "Einzelaufnahme programmiert");
         kodi::addon::CInstancePVRClient::TriggerTimerUpdate();
         auto current_time = time(NULL);
         if (current_time > timer.GetStartTime()) {

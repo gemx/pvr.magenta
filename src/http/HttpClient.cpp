@@ -115,7 +115,7 @@ std::string HttpClient::HttpRequest(const std::string& action, const std::string
   if ((url.find("oauth2") != std::string::npos) || (url.find("factorx") != std::string::npos) || (url.find("/caas/atvlauncher/v1/token") != std::string::npos)) {
     curl.AddHeader("Content-Type", "application/x-www-form-urlencoded");
   } else {
-    curl.AddHeader("Content-Type", "application/json");
+    curl.AddHeader("Content-Type", "application/json;v=3");
   }
 
   if (m_sessionId.empty())
