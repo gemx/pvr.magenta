@@ -11,11 +11,11 @@ jobs:
       matrix:
         include:
         - name: "Debian package test"
-          os: ubuntu-24.04
+          os: ubuntu-23.04
           CC: gcc
           CXX: g++
           DEBIAN_BUILD: true
-        - os: ubuntu-24.04
+        - os: ubuntu-23.04
           CC: gcc
           CXX: g++
     steps:
