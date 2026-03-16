@@ -8,8 +8,7 @@ I try to continue the excellent work of nirvana-7777 and implementing missing fe
 ## Roadmap
 * Compatibility for Piers
 * Fix problems with getting a token at first start (best method actually is enable V1 API, authenticate with the token, restart kodi, switch to v2 API, restart kodi, authenticate)
-* Delete Recording
-* Create recordings
+* Only show 2 channel groups for magenta2 (
 
 # Magenta PVR client for Kodi
 This is a Magenta PVR client addon for Kodi. It provides Kodi integration for the streaming provider [Magenta TV](https://www.telekom.de/magenta-tv). A user account / paid subscription is required to use this addon. The content is geo-blocked and DRM protected. Therefore it requires inputstream adaptive in combination with widevine.
