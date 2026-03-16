@@ -2585,7 +2585,11 @@ PVR_ERROR CPVRMagenta::UpdateTimer(const kodi::addon::PVRTimer& timer)
 {
   if (m_isMagenta2)
   {
-    return m_magenta2->UpdateTimer(timer);
+    PVR_ERROR result = m_magenta2->UpdateTimer(timer);
+    if (result==PVR_ERROR_NO_ERROR)
+    {
+      kodi::addon::CInstancePVRClient::TriggerTimerUpdate();
+    }
   }
 
   kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);

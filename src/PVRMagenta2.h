@@ -228,6 +228,7 @@ private:
   int GetSeriesTimerIdBySeriesId(std::string seriesId);
   PVR_ERROR AddOncePVRTimer(kodi::addon::PVRTimersResultSet& results);
   PVR_ERROR AddSeriesPVRTimer(kodi::addon::PVRTimersResultSet& results);
+  PVR_ERROR GetListingAndSeriesGuidFromAllChannelSchedulesFeed(const kodi::addon::PVRTimer timer, std::string& listingGuid, std::string& seriesGuid, std::string channelGuid);
   int CountTimersRecordings(const bool& isRecording);
   void FillPVRRecording(const rapidjson::Value& recordingItem, kodi::addon::PVRRecording& kodiRecording);
   void SetGenreTypes(const rapidjson::Value& item, std::string& primary, std::string& secondary);

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon
   id="pvr.magenta"
-  version="21.9.5"
+  version="21.10.0"
   name="Magenta PVR Client"
   provider-name="Nirvana">
   <requires>
@@ -15,8 +15,8 @@
   <extension point="xbmc.addon.metadata">
     <platform>@PLATFORM@</platform>
     <license>GPL-2.0-or-later</license>
-    <source>https://github.com/nirvana-7777/pvr.magenta</source>
-    <forum>https://forum.kodi.tv/forumdisplay.php?fid=173</forum>
+    <source>https://github.com/gemx/pvr.magenta</source>
+    <forum>https://www.kodinerds.net/thread/80847-magenta-addon-interesse-an-weiterentwicklung</forum>
     <assets>
       <icon>icon.png</icon>
     </assets>
