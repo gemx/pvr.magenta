@@ -259,7 +259,7 @@ bool CPVRMagenta2::GetPostJson(const std::string& url, const std::string& body, 
                                           Utils::JsonStringOrEmpty(doc, "title").c_str());
     }
     return false;
-  }*/
+  }
   return true;
 }
 
