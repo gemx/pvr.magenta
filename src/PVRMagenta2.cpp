@@ -213,13 +213,13 @@ bool CPVRMagenta2::GetPostJson(const std::string& url, const std::string& body, 
     kodi::Log(ADDON_LOG_ERROR, "Failed to get JSON %s status code: %i", url.c_str(), statusCode);
     return false;
   }
-  /*if (doc.HasMember("isException"))
+  if (!doc.IsArray() && doc.HasMember("isException"))
   {
-    kodi::Log(ADDON_LOG_DEBUG, "GEMX: Exception?");
+    
     if (Utils::JsonIntOrZero(doc, "responseCode") == 401)
     {
       kodi::Log(ADDON_LOG_DEBUG, "We need to reauthenticate!");
-    
+      /*
       if (!m_authMethods.password && !m_authMethods.code && !m_authMethods.line)
         m_sam3Client->GetAuthMethods();
       if (m_authMethods.line)
@@ -227,7 +227,7 @@ bool CPVRMagenta2::GetPostJson(const std::string& url, const std::string& body, 
         kodi::Log(ADDON_LOG_DEBUG, "LineAuth");
 //        LineAuth();
       }
-     
+      */
       if (m_authClient->ReLogin()) {
         kodi::Log(ADDON_LOG_DEBUG, "Reauth successful");
         if (body.empty()) {
