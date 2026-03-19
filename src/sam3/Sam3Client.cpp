@@ -383,7 +383,7 @@ bool Sam3Client::GetToken(const std::string& grantType, const std::string& scope
 {
   kodi::Log(ADDON_LOG_DEBUG, "[Sam3] function call: [%s]", __FUNCTION__);
 
-  if (m_token_endpoint.empty() || m_refreshToken.empty())
+  if (m_token_endpoint.empty())//GEMX: This breaks auth and doesn't make sense || m_refreshToken.empty())
     return false;
 
   std::string url = m_token_endpoint;
