@@ -399,6 +399,21 @@ bool CPVRMagenta2::GetCategories()
 {
   kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
 
+  if (m_settings->IsOnlyFavorites())
+  {
+      Magenta2Category category;
+      category.id = "Favorites";
+      category.description = "Favorite channels";
+      category.parentId = "";
+      category.order = 1;
+      //category.scheme = Utils::JsonStringOrEmpty(entries[i], "scheme");
+      category.level = 0; //Utils::JsonIntOrZero(entries[i], "level");
+      m_categories.emplace_back(category);
+      kodi::Log(ADDON_LOG_DEBUG, "Adding category %s", category.description.c_str());          
+
+      return true;
+  }
+
   replace(m_liveTvCategoryFeed, "{MpxAccountPid}", m_accountPid);
 
   std::string url = m_liveTvCategoryFeed;
@@ -619,12 +634,16 @@ void CPVRMagenta2::AddChannelEntry(const rapidjson::Value& entry)
       }
     }
 
-    if (stationItem.HasMember("dt$categoryIds"))
+    
+    if (!m_settings->IsOnlyFavorites())
     {
-      const rapidjson::Value& categoryIds = stationItem["dt$categoryIds"];
-      for (int j=0; j<categoryIds.Size(); j++)
+      if (stationItem.HasMember("dt$categoryIds"))
       {
-        AddGroupChannel(categoryIds[j].GetString(), channel.iUniqueId);
+        const rapidjson::Value& categoryIds = stationItem["dt$categoryIds"];
+        for (int j=0; j<categoryIds.Size(); j++)
+        {
+          AddGroupChannel(categoryIds[j].GetString(), channel.iUniqueId);
+        }
       }
     }
     CPVRMagenta2::m_channels.emplace_back(channel);
@@ -775,7 +794,19 @@ bool CPVRMagenta2::GetUserList(const std::string& context)
       {
         for (rapidjson::SizeType j = 0; j < items.Size(); j++)
         {
-          SetFavorite(Utils::JsonStringOrEmpty(items[j], "aboutId"), Utils::JsonIntOrZero(items[j], "index"));
+          std::string id=Utils::JsonStringOrEmpty(items[j], "aboutId");
+          if (m_settings->IsOnlyFavorites())
+          {
+            for (auto& thisChannel : m_channels)
+            {
+              if (thisChannel.stationsId == id)
+              {
+                m_categories[0].channelUids.emplace_back(thisChannel.iUniqueId);
+                kodi::Log(ADDON_LOG_DEBUG, "Added %s to favorite channels", thisChannel.strChannelName.c_str());
+                break;
+              }
+            }
+          }
         }
       }
     }
@@ -1144,7 +1175,7 @@ PVR_ERROR CPVRMagenta2::GetChannels(bool bRadio, kodi::addon::PVRChannelsResultS
   for (const auto& channel : m_channels)
   {
 
-    if ((channel.bRadio == bRadio) && (!m_settings->IsHiddenDeactivated() || !channel.isHidden) && (!m_settings->IsOnlyFavorites() || channel.isFavorite))
+    if ((channel.bRadio == bRadio) && (!m_settings->IsHiddenDeactivated() || !channel.isHidden)) 
     {
       kodi::addon::PVRChannel kodiChannel;
 

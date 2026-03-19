@@ -50,3 +50,6 @@ v21.10.0
 - Magenta2: Channels hidden in Magenta app are now also hidden in kodi
 - Magenta2: Implemented deletion of recordings
 - Magenta2: Implemented all timer functions
+v21.10.1
+- Magenta2: fixed authentication (if it's not working please enter credentials, do auth via website and restart kodi)
+- Magenta2: If "Only Favorites" is enabled then you only get 2 Channelgroups "All channels" and "Favorites" (which contains your favorite channels)
