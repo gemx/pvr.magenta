@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <kodi/addon-instance/PVR.h>
+#include <kodi/tools/Timer.h>
 #include "Settings.h"
 #include "http/HttpClient.h"
 #include "sam3/Sam3Client.h"
@@ -18,22 +19,7 @@
 
 static const std::string BOOTSTRAP_URL = "https://prod.dcm.telekom-dienste.de/v1/settings/{configGroupId}/bootstrap?";
 static const std::string WINDOWS_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-//static const std::string ANDROID_USER_AGENT = "Dalvik/2.1.0 (Linux; U; Android 11; SHIELD Android TV Build/RQ1A.210105.003) ((2.00T_ATV::3.134.4462::mdarcy::FTV_OTT_DT))";
-//static const std::string CONFIG_GROUP_ID = "web-mtv";
-/*
-static const std::string CONFIG_GROUP_ID = "atv-androidtv";
-static const std::string CONFIG_GROUP_ID_ONE = "";
-static const std::string CONFIG_GROUP_ID_MOBILE = "android-mobile";
-static const std::string DEVICEMODEL = "DT:ATV-AndroidTV";
-static const std::string DEVICEMODEL_ONE = "ATVG6_FTV";
-static const std::string DEVICEMODEL_MOBILE = "AndroidMobile_FTV";
-static const std::string CLIENT_MODEL_ONE = "ftv-magentatv-one";
-static const std::string CLIENT_MODEL_MOBILE = "ftv-androidmobile";
-static const std::string APPNAME = "MagentaTV";
-static const std::string APPVERSION = "104180";
-static const std::string FIRMWARE = "API level 30";
-static const std::string RUNTIMEVERSION = "1";
-*/
+
 static const int MAX_CHANNEL_ENTRIES = 100;
 static const uint64_t TIMEBUFFER2 = 4 * 60 * 60; //4h time buffer
 static const long KBM2 = 150000; // 150 MB
@@ -41,11 +27,6 @@ static const int CUTOFF = 1000;
 
 static const std::vector<std::string> Magenta2StationThumbnailTypes
                   = { "stationBackground", "stationBarker", "stationLogo", "stationLogoColored" };
-/*
-static const int FEED_ALL_CHANNELS = 0;
-static const int FEED_ENTITLED_CHANNELS = 1;
-static const int FEED_CHANNEL_SCHEDULE = 2;
-*/
 
 struct Magenta2SubGenre
 {
@@ -131,7 +112,7 @@ struct Magenta2Recording
 class CPVRMagenta2
 {
 public:
-  CPVRMagenta2(CSettings* settings, HttpClient* httpclient);
+  CPVRMagenta2(CSettings* settings, HttpClient* httpclient, kodi::addon::CInstancePVRClient* instancePVRClient);
   ~CPVRMagenta2();
 
   typedef void (CPVRMagenta2::*handleentry_t)(const rapidjson::Value& entry);
@@ -184,13 +165,14 @@ private:
   std::vector<Magenta2Genre> m_genres;
   std::vector<Magenta2Category> m_categories;
   std::vector<kodi::addon::PVRTimer> m_seriesTimers;
-//  std::vector<Magenta2Recording> m_recordings;
-//  std::vector<Magenta2Recording> m_timers;
+  
+  std::unique_ptr<kodi::tools::CTimer> m_refreshTimer;
 
   HttpClient* m_httpClient;
   CSettings* m_settings;
   Sam3Client* m_sam3Client;
   AuthClient* m_authClient;
+  kodi::addon::CInstancePVRClient* m_instancePVRClient;
 
   bool XMLGetString(const tinyxml2::XMLNode* pRootNode,
                               const std::string& strTag,
@@ -232,6 +214,7 @@ private:
   int CountTimersRecordings(const bool& isRecording);
   void FillPVRRecording(const rapidjson::Value& recordingItem, kodi::addon::PVRRecording& kodiRecording);
   void SetGenreTypes(const rapidjson::Value& item, std::string& primary, std::string& secondary);
+  void OnRefreshEveryMinute();
 
   std::string m_deviceId;
   std::string m_sessionId;

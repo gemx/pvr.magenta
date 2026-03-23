@@ -6,10 +6,10 @@
  *  See LICENSE.md for more information.
  */
 
-#include "PVRMagenta2.h"
+//#include "PVRMagenta2.h"
 
 #include <algorithm>
-
+#include "PVRMagenta2.h"
 #include "Globals.h"
 #include <kodi/General.h>
 #include <kodi/gui/dialogs/OK.h>
@@ -815,9 +815,10 @@ bool CPVRMagenta2::GetUserList(const std::string& context)
   return true;
 }
 
-CPVRMagenta2::CPVRMagenta2(CSettings* settings, HttpClient* httpclient):
+CPVRMagenta2::CPVRMagenta2(CSettings* settings, HttpClient* httpclient, kodi::addon::CInstancePVRClient* instancePVRClient):
   m_settings(settings),
-  m_httpClient(httpclient)
+  m_httpClient(httpclient),
+  m_instancePVRClient(instancePVRClient)
 {
   m_sessionId = Utils::CreateUUID();
   kodi::Log(ADDON_LOG_DEBUG, "Current SessionID %s", m_sessionId.c_str());
@@ -880,10 +881,19 @@ CPVRMagenta2::CPVRMagenta2(CSettings* settings, HttpClient* httpclient):
   replace(m_allProgramsFeedUrl, "{{MpxAccountPid}}", m_accountPid);
   GetMyGenres();
   GetUserList("");
+  
+  m_refreshTimer = std::make_unique<kodi::tools::CTimer>([this] { OnRefreshEveryMinute(); });
+  // Start in 60s, wiederkehrend alle 60s
+  m_refreshTimer->Start(60 * 1000, true /*repeat*/);
+
 }
 
 CPVRMagenta2::~CPVRMagenta2()
 {
+  if (m_refreshTimer) 
+  {
+    m_refreshTimer->Stop();
+  }
   m_channels.clear();
 }
 
@@ -1950,7 +1960,7 @@ PVR_ERROR CPVRMagenta2::AddOncePVRTimer(kodi::addon::PVRTimersResultSet& results
       kodiTimer.SetParentClientIndex(GetSeriesTimerIdBySeriesId(Utils::JsonStringOrEmpty(recordingItem["series"], "guid"))); 
       kodiTimer.SetStartTime(Utils::StringToTime2(Utils::JsonStringOrEmpty(recordingItem,"startDateTime")));
       kodiTimer.SetEndTime(Utils::StringToTime2(Utils::JsonStringOrEmpty(recordingItem,"endDateTime")));
-      kodiTimer.SetEPGSearchString(Utils::JsonStringOrEmpty(recordingItem, "seriesId")); 
+      kodiTimer.SetEPGSearchString(Utils::JsonStringOrEmpty(listing, "guid")); 
       time_t expirationDateTime = Utils::StringToTime2(Utils::JsonStringOrEmpty(recordingItem, "expirationDateTime"));
       kodiTimer.SetLifetime(static_cast<int>((expirationDateTime - time(NULL))/(60*60*24)));
       kodiTimer.SetMarginStart(Utils::JsonIntOrZero(recordingItem,"startOffsetSeconds")/60);
@@ -2115,7 +2125,7 @@ PVR_ERROR CPVRMagenta2::AddTimer(const kodi::addon::PVRTimer& timer)
     kodi::Log(ADDON_LOG_DEBUG,"Added TIMER_ONCE_EPG");
     kodi::QueueNotification(QUEUE_INFO, "Timer", "Einzelaufnahme hinzugefügt");
   }
-    
+   m_instancePVRClient->TriggerTimerUpdate(); 
  return PVR_ERROR_NO_ERROR;
 }
 
@@ -2161,6 +2171,7 @@ PVR_ERROR CPVRMagenta2::UpdateTimer(const kodi::addon::PVRTimer& timer)
     kodi::Log(ADDON_LOG_DEBUG,"Updated TIMER_ONCE_EPG");
     kodi::QueueNotification(QUEUE_INFO, "Timer", "Einzelaufnahme aktualisiert");
   }
+  m_instancePVRClient->TriggerTimerUpdate();
   return PVR_ERROR_NO_ERROR;
 }
 
@@ -2169,9 +2180,13 @@ PVR_ERROR CPVRMagenta2::DeleteTimer(const kodi::addon::PVRTimer& timer, bool for
     kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
 
     std::string url="";
+    useconds_t delay=2000000;
     if (timer.GetTimerType()==TIMER_SERIES_EPG)
     {
        url = m_pvrBaseUrl + "/cancel-schedule-for-series/"+timer.GetEPGSearchString();
+       // cancelling schedules takes a bit longer - Need some way to detect if its really deleted
+       delay=2000000;
+
     }
     else
     {
@@ -2180,8 +2195,9 @@ PVR_ERROR CPVRMagenta2::DeleteTimer(const kodi::addon::PVRTimer& timer, bool for
 
     if (SendDeleteRequest(url)) 
     {
-      usleep(2000000); //Sometimes magenta needs some time to propagate the info. Wait 2 seconds
+      usleep(delay); //Sometimes magenta needs some time to propagate the info. Wait 2 seconds
       kodi::QueueNotification(QUEUE_INFO, "Timer", "Timer gelöscht");
+      m_instancePVRClient->TriggerTimerUpdate();
       return PVR_ERROR_NO_ERROR;
     }
     else
@@ -2308,7 +2324,6 @@ PVR_ERROR CPVRMagenta2::GetRecordings(bool deleted, kodi::addon::PVRRecordingsRe
       }
     }
   }
-
   return PVR_ERROR_NO_ERROR;
 }
 
@@ -2321,6 +2336,7 @@ PVR_ERROR CPVRMagenta2::DeleteRecording(const kodi::addon::PVRRecording& recordi
     {
       usleep(2000000); //Sometimes magenta needs some time to propagate the info. Wait 2 seconds
       kodi::QueueNotification(QUEUE_INFO, "Aufnahme", "Aufnahme gelöscht");
+      m_instancePVRClient->TriggerRecordingUpdate();
       return PVR_ERROR_NO_ERROR;
     }
     else
@@ -2381,4 +2397,11 @@ PVR_ERROR CPVRMagenta2::GetDriveSpace(uint64_t& total, uint64_t& used)
   used = quotaUsed * KBM2; //convert hours to MB
   kodi::Log(ADDON_LOG_DEBUG, "Reported %llu/%llu used/total", used, total);
   return PVR_ERROR_NO_ERROR;
+}
+
+void CPVRMagenta2::OnRefreshEveryMinute()
+{
+  kodi::Log(ADDON_LOG_DEBUG, "Triggering timer and recordings refresh...");
+  m_instancePVRClient->TriggerRecordingUpdate();
+  m_instancePVRClient->TriggerTimerUpdate();
 }

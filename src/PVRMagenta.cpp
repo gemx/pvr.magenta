@@ -899,7 +899,7 @@ CPVRMagenta::CPVRMagenta() :
 
   m_isMagenta2 = m_settings->IsMagenta2();
   if (m_isMagenta2) {
-    m_magenta2 = new CPVRMagenta2(m_settings, m_httpClient);
+    m_magenta2 = new CPVRMagenta2(m_settings, m_httpClient, this);
     return;
   }
 
@@ -2187,12 +2187,7 @@ PVR_ERROR CPVRMagenta::DeleteRecording(const kodi::addon::PVRRecording& recordin
   kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
   if (m_isMagenta2)
   {
-    PVR_ERROR retCode=m_magenta2->DeleteRecording(recording);
-    if (retCode==PVR_ERROR_NO_ERROR)
-    {
-      kodi::addon::CInstancePVRClient::TriggerRecordingUpdate();
-    }
-    return retCode;
+    return m_magenta2->DeleteRecording(recording);
   }
   else
   {
@@ -2516,7 +2511,6 @@ PVR_ERROR CPVRMagenta::AddTimer(const kodi::addon::PVRTimer& timer)
     PVR_ERROR magenta2RetCode=m_magenta2->AddTimer(timer);
     if (magenta2RetCode==PVR_ERROR_NO_ERROR)
     {
-        kodi::addon::CInstancePVRClient::TriggerTimerUpdate();
         auto current_time = time(NULL);
         if (current_time > timer.GetStartTime()) {
           kodi::addon::CInstancePVRClient::TriggerRecordingUpdate();
@@ -2585,11 +2579,7 @@ PVR_ERROR CPVRMagenta::UpdateTimer(const kodi::addon::PVRTimer& timer)
 {
   if (m_isMagenta2)
   {
-    PVR_ERROR result = m_magenta2->UpdateTimer(timer);
-    if (result==PVR_ERROR_NO_ERROR)
-    {
-      kodi::addon::CInstancePVRClient::TriggerTimerUpdate();
-    }
+    return m_magenta2->UpdateTimer(timer);
   }
 
   kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
@@ -2655,13 +2645,7 @@ PVR_ERROR CPVRMagenta::DeleteTimer(const kodi::addon::PVRTimer& timer, bool forc
 {
   if (m_magenta2)
   {
-    PVR_ERROR retCode=m_magenta2->DeleteTimer(timer,forceDelete);
-    if (retCode==PVR_ERROR_NO_ERROR)
-    {
-      kodi::Log(ADDON_LOG_DEBUG, "Trigger timer update()");
-      kodi::addon::CInstancePVRClient::TriggerTimerUpdate();
-    }
-    return retCode;
+    return m_magenta2->DeleteTimer(timer,forceDelete);
   }
 
   kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
