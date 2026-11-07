@@ -50,7 +50,7 @@ Versions from 21.9.0 also support Magenta TV 2.0. For Magenta TV 2.0 you have to
 8. `cmake -DADDONS_TO_BUILD=pvr.magenta -DADDON_SRC_PREFIX=../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../../kodi/addons -DPACKAGE_ZIP=1 ../../kodi/cmake/addons`
    for cross-compile from linux to android use
 8. `cmake -DADDONS_TO_BUILD="pvr.magenta" -DADDON_SRC_PREFIX=../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../../kodi/addons -DPACKAGE_ZIP=1 -DCMAKE_TOOLCHAIN_FILE=/home/pi/android-tools/xbmc-depends/arm-linux-androideabi-21-debug/share/Toolchain.cmake ../../kodi/cmake/addons`
-10. `make`
+10. `make package-addons`
 
 ## Notes
 
