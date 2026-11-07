@@ -39,9 +39,9 @@ Versions from 21.9.0 also support Magenta TV 2.0. For Magenta TV 2.0 you have to
 ### Linux
 
 1. `git clone --branch master https://github.com/xbmc/xbmc.git kodi`
-   compile kodi -- if you want to build for android follow the official cross compile guide here https://github.com/xbmc/xbmc/blob/master/docs/README.Android.md
-   ATTENTION: If you want to crosscompile for Omega be sure to choose an old version of the NDK - 21.4.7075529 worked fine for Omega
-   You only to build up to and including step 5 "Build tools and dependencies
+   * compile kodi -- if you want to build for android follow the official cross compile guide here https://github.com/xbmc/xbmc/blob/master/docs/README.Android.md
+   * ATTENTION: If you want to crosscompile for Omega be sure to choose an old version of the NDK - 21.4.7075529 worked fine for Omega
+   * You only to build up to and including step 5 "Build tools and dependencies
 3. `mkdir -p kodi/cmake/addons/addons/pvr.magenta/`
 4. `echo "pvr.magenta https://github.com/gemx/pvr.magenta Omega" > kodi/cmake/addons/addons/pvr.magenta/pvr.magenta.txt`
 5. `echo "all" > kodi/cmake/addons/addons/pvr.magenta/platforms.txt`
