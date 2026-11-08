@@ -1,5 +1,6 @@
 v22.10.3
 - Is now Pier compatible
+- Fixed display of recording groups
 - Fixed several potential cases for crashes in EPG, Channel and Timer retrieval on startup
 
 v21.10.1

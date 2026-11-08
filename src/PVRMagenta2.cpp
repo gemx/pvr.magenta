@@ -2247,6 +2247,22 @@ void CPVRMagenta2::FillPVRRecording(const rapidjson::Value& recordingItem, kodi:
   kodiRecording.SetRecordingId(Utils::JsonStringOrEmpty(listing, "guid"));
   kodiRecording.SetTitle(Utils::JsonStringOrEmpty(program, "title"));
   kodiRecording.SetYear(Utils::JsonIntOrZero(program, "year"));
+
+  // Kodi's "Group recordings" view groups by the recording's Directory.
+  // Without a directory, every recording has an empty group key and the
+  // toggle does nothing. Use the series title as the group, falling back
+  // to the program title so every recording still gets a (self) group.
+  std::string directory = "";
+  if (recordingItem.HasMember("series") && recordingItem["series"].IsObject())
+    directory = Utils::JsonStringOrEmpty(recordingItem["series"], "title");
+  if (directory.empty())
+    directory = Utils::JsonStringOrEmpty(program, "title");
+  if (!directory.empty())
+    kodiRecording.SetDirectory(directory);
+
+  kodiRecording.SetSeriesNumber(Utils::JsonIntOrZero(program, "tvSeasonNumber"));
+  kodiRecording.SetEpisodeNumber(Utils::JsonIntOrZero(program, "tvSeasonEpisodeNumber"));
+  kodiRecording.SetEpisodeName(Utils::JsonStringOrEmpty(program, "secondaryTitle"));
   kodiRecording.SetPlot(Utils::JsonStringOrEmpty(program, "description"));
   kodiRecording.SetPlotOutline(Utils::JsonStringOrEmpty(program, "shortDescription"));
   kodiRecording.SetDuration(static_cast<int>(Utils::JsonDoubleOrZero(program, "runtime")));
