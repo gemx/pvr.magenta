@@ -22,6 +22,9 @@ public:
   static std::string TimeToString2(time_t time);
   static std::string TimeToString3(time_t time);
   static int GetChannelId(const char * strChannelName);
+  static std::string SubstrSafe(const std::string &value, size_t pos);
+  static int StoiSafe(const std::string &value, int base = 10);
+  static int GuidToHex(const std::string &guid);
   static std::string GetImageUrl(const std::string& imageToken);
   static std::string JsonStringOrEmpty(const rapidjson::Value& jsonValue, const char* fieldName);
   static int JsonIntOrZero(const rapidjson::Value& jsonValue, const char* fieldName);

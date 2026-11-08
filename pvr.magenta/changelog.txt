@@ -1,3 +1,7 @@
+v22.10.3
+- Is now Pier compatible
+- Fixed several potential cases for crashes in EPG, Channel and Timer retrieval on startup
+
 v21.10.1
 - Magenta2: fixed authentication (if it's not working please enter credentials, do auth via website and restart kodi)
 - Magenta2: If "Only Favorites" is enabled then you only get 2 Channelgroups "All channels" and "Favorites" (which contains your favorite channels)

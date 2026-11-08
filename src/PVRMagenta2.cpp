@@ -1195,17 +1195,23 @@ PVR_ERROR CPVRMagenta2::GetChannels(bool bRadio, kodi::addon::PVRChannelsResultS
       kodiChannel.SetChannelName(channel.strChannelName);
 
       int pictureNo = 0;
-      for (int i=0; i<channel.thumbnails.size(); i++)
+      for (int i=0; i<(int)channel.thumbnails.size(); i++)
       {
         if ((m_settings->UseWhiteLogos() && channel.thumbnails[i].title == "stationLogo.png") ||
             (!m_settings->UseWhiteLogos() && channel.thumbnails[i].title == "stationLogoColored.png"))
           pictureNo = i;
       }
-      std::string iconUrl = GetNgissUrl(channel.thumbnails[pictureNo].url,
-                                        channel.thumbnails[pictureNo].width,
-                                        channel.thumbnails[pictureNo].height);
-//      kodi::Log(ADDON_LOG_DEBUG, "Icon Url: %s", iconUrl.c_str());
-      kodiChannel.SetIconPath(iconUrl);
+      if (channel.thumbnails.empty())
+      {
+        kodi::Log(ADDON_LOG_DEBUG, "Channel %s has no thumbnails, skipping icon", channel.strChannelName.c_str());
+      }
+      else
+      {
+        std::string iconUrl = GetNgissUrl(channel.thumbnails[pictureNo].url,
+                                          channel.thumbnails[pictureNo].width,
+                                          channel.thumbnails[pictureNo].height);
+        kodiChannel.SetIconPath(iconUrl);
+      }
       kodiChannel.SetIsHidden(channel.isHidden);
       kodiChannel.SetHasArchive(false);
 
@@ -1217,7 +1223,7 @@ PVR_ERROR CPVRMagenta2::GetChannels(bool bRadio, kodi::addon::PVRChannelsResultS
 }
 
 PVR_ERROR CPVRMagenta2::GetChannelStreamProperties(
-    const kodi::addon::PVRChannel& channel, std::vector<kodi::addon::PVRStreamProperty>& properties)
+    const kodi::addon::PVRChannel& channel, PVR_SOURCE source, std::vector<kodi::addon::PVRStreamProperty>& properties)
 {
   kodi::Log(ADDON_LOG_DEBUG, "function call: [%s]", __FUNCTION__);
 
@@ -1484,6 +1490,12 @@ bool CPVRMagenta2::GetEPGFeed(const int& channelNumber, const std::string& baseU
       }
       if ((entryCount == 300) || (j == listings.Size()-1))
       {
+        if (entryCount == 0)
+        {
+          guids = "";
+          entryCount = 0;
+          continue;
+        }
         guids.erase(guids.end() - 1);
       //  kodi::Log(ADDON_LOG_DEBUG, "Guids found %s", guids.c_str());
 
@@ -1886,7 +1898,7 @@ PVR_ERROR CPVRMagenta2::AddSeriesPVRTimer(kodi::addon::PVRTimersResultSet& resul
     kodiTimer.SetTimerType(TIMER_SERIES_EPG);
     kodiTimer.SetState(PVR_TIMER_STATE_SCHEDULED);
     kodiTimer.SetTitle(Utils::JsonStringOrEmpty(series[i], "title"));
-    int guid = stoi(Utils::JsonStringOrEmpty(series[i], "seriesGuid").substr(11, std::string::npos), 0, 16);
+    int guid = Utils::GuidToHex(Utils::JsonStringOrEmpty(series[i], "seriesGuid"));
     kodiTimer.SetClientIndex(guid);
     kodiTimer.SetEPGSearchString(Utils::JsonStringOrEmpty(series[i], "seriesGuid")); //GEMX: also save the seriesId somewhere in case we need it
     //tagGroup.SetClientChannelUid(timerGroup.channelId);
@@ -1951,13 +1963,16 @@ PVR_ERROR CPVRMagenta2::AddOncePVRTimer(kodi::addon::PVRTimersResultSet& results
       const rapidjson::Value& program = recordings[i]["program"];
       const rapidjson::Value& listing = recordings[i]["listing"];
 
-      int guid = stoi(Utils::JsonStringOrEmpty(program, "guid").substr(11, std::string::npos), 0, 16);
+      int guid = Utils::GuidToHex(Utils::JsonStringOrEmpty(program, "guid"));
       kodiTimer.SetClientIndex(guid);
       kodiTimer.SetEPGUid(guid);
       kodiTimer.SetState(PVR_TIMER_STATE_SCHEDULED);
       kodiTimer.SetTimerType(TIMER_ONCE_EPG);
       kodiTimer.SetTitle(Utils::JsonStringOrEmpty(program, "title"));
-      kodiTimer.SetParentClientIndex(GetSeriesTimerIdBySeriesId(Utils::JsonStringOrEmpty(recordingItem["series"], "guid"))); 
+      std::string seriesGuid = "";
+      if (recordingItem.HasMember("series") && recordingItem["series"].IsObject())
+        seriesGuid = Utils::JsonStringOrEmpty(recordingItem["series"], "guid");
+      kodiTimer.SetParentClientIndex(GetSeriesTimerIdBySeriesId(seriesGuid));
       kodiTimer.SetStartTime(Utils::StringToTime2(Utils::JsonStringOrEmpty(recordingItem,"startDateTime")));
       kodiTimer.SetEndTime(Utils::StringToTime2(Utils::JsonStringOrEmpty(recordingItem,"endDateTime")));
       kodiTimer.SetEPGSearchString(Utils::JsonStringOrEmpty(listing, "guid")); 
@@ -2238,7 +2253,7 @@ void CPVRMagenta2::FillPVRRecording(const rapidjson::Value& recordingItem, kodi:
   time_t expirationDateTime = Utils::StringToTime2(Utils::JsonStringOrEmpty(recordingItem, "expirationDateTime"));
 
   kodiRecording.SetLifetime(static_cast<int>((expirationDateTime - time(NULL))/(60*60*24)));
-  int epgGuid = stoi(Utils::JsonStringOrEmpty(program, "guid").substr(11, std::string::npos), 0, 16);
+  int epgGuid = Utils::GuidToHex(Utils::JsonStringOrEmpty(program, "guid"));
   kodiRecording.SetEPGEventId(epgGuid);
   kodiRecording.SetRecordingTime(Utils::StringToTime2(Utils::JsonStringOrEmpty(recordingItem,"startDateTime")));
   kodiRecording.SetChannelType(PVR_RECORDING_CHANNEL_TYPE_TV);
@@ -2268,7 +2283,8 @@ void CPVRMagenta2::FillPVRRecording(const rapidjson::Value& recordingItem, kodi:
   {
     const rapidjson::Value& thumbnails = program["thumbnails"];
     rapidjson::Value::ConstMemberIterator itr = thumbnails.MemberBegin();
-    ++itr;
+    if (itr != thumbnails.MemberEnd())
+      ++itr;
     if (itr != thumbnails.MemberEnd())
     {
       const rapidjson::Value& thumbnailsItem = (itr->value);

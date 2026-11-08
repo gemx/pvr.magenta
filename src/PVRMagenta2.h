@@ -123,6 +123,7 @@ public:
   PVR_ERROR GetChannels(bool bRadio, kodi::addon::PVRChannelsResultSet& results);
   PVR_ERROR GetChannelStreamProperties(
       const kodi::addon::PVRChannel& channel,
+      PVR_SOURCE source,
       std::vector<kodi::addon::PVRStreamProperty>& properties);
   //EPG
   PVR_ERROR GetEPGForChannel(int channelUid,

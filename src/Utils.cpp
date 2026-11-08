@@ -191,6 +191,30 @@ int Utils::GetChannelId(const char * strChannelName)
   return abs(iId);
 }
 
+std::string Utils::SubstrSafe(const std::string &value, size_t pos)
+{
+  if (pos >= value.size())
+    return "";
+  return value.substr(pos);
+}
+
+int Utils::StoiSafe(const std::string &value, int base)
+{
+  try
+  {
+    return std::stoi(value, nullptr, base);
+  }
+  catch (const std::exception &)
+  {
+    return 0;
+  }
+}
+
+int Utils::GuidToHex(const std::string &guid)
+{
+  return StoiSafe(SubstrSafe(guid, 11), 16);
+}
+
 std::string Utils::GetImageUrl(const std::string& imageToken) {
   return "https://images.zattic.com/cms/" + imageToken + "/format_640x360.jpg";
 }
